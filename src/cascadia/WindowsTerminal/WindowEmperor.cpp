@@ -198,6 +198,13 @@ static wil::unique_mutex acquireMutexOrAttemptHandoff(const wchar_t* className, 
 
 static constexpr bool IsInputKey(WORD vkey) noexcept
 {
+    // Media, browser, and launcher keys (VK_BROWSER_BACK through
+    // VK_LAUNCH_APP2, i.e. 0xA6-0xB7) are system keys that don't send
+    // characters to the terminal and should not trigger cursor hiding.
+    if (vkey >= VK_BROWSER_BACK && vkey <= VK_LAUNCH_APP2)
+    {
+        return false;
+    }
     return vkey != VK_CONTROL &&
            vkey != VK_LCONTROL &&
            vkey != VK_RCONTROL &&

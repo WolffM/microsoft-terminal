@@ -30,6 +30,7 @@ namespace TerminalCoreUnitTests
 
         TEST_METHOD(AltShiftKey);
         TEST_METHOD(InvalidKeyEvent);
+        TEST_METHOD(MediaKeysAreNotInputKeys);
 
         Terminal term{ Terminal::TestDummyMarker{} };
     };
@@ -51,5 +52,44 @@ namespace TerminalCoreUnitTests
         // send us key events using SendInput() whose values are outside of the valid range.
         VERIFY_ARE_EQUAL(unhandled(), term.SendKeyEvent(0, 123, {}, true));
         VERIFY_ARE_EQUAL(unhandled(), term.SendKeyEvent(255, 123, {}, true));
+    }
+
+    void InputTest::MediaKeysAreNotInputKeys()
+    {
+        // Media, browser, and launcher keys (VK_BROWSER_BACK through
+        // VK_LAUNCH_APP2) must NOT be treated as input keys. If they were, pressing
+        // them would snap the terminal viewport to the bottom even though they don't
+        // produce any terminal output.
+        //
+        // Regular keys (e.g. VK_RETURN) must still be considered input keys.
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_BROWSER_BACK));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_BROWSER_FORWARD));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_BROWSER_REFRESH));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_BROWSER_STOP));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_BROWSER_SEARCH));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_BROWSER_FAVORITES));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_BROWSER_HOME));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_VOLUME_MUTE));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_VOLUME_DOWN));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_VOLUME_UP));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_MEDIA_NEXT_TRACK));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_MEDIA_PREV_TRACK));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_MEDIA_STOP));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_MEDIA_PLAY_PAUSE));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_LAUNCH_MAIL));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_LAUNCH_MEDIA_SELECT));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_LAUNCH_APP1));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_LAUNCH_APP2));
+
+        // Modifier keys are also not input keys (existing behavior).
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_CONTROL));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_SHIFT));
+        VERIFY_IS_FALSE(Terminal::IsInputKey(VK_MENU));
+
+        // Regular keys are input keys.
+        VERIFY_IS_TRUE(Terminal::IsInputKey(VK_RETURN));
+        VERIFY_IS_TRUE(Terminal::IsInputKey(VK_BACK));
+        VERIFY_IS_TRUE(Terminal::IsInputKey(VK_SPACE));
+        VERIFY_IS_TRUE(Terminal::IsInputKey('A'));
     }
 }
