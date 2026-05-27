@@ -293,6 +293,7 @@ void AppHost::Initialize()
         winrt::Windows::System::DispatcherQueue::GetForCurrentThread(),
         til::throttled_func_options{
             .delay = std::chrono::milliseconds{ 200 },
+            .leading = true,
             .trailing = true,
         },
         [this](const bool show) {
